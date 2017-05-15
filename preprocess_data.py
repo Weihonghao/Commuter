@@ -8,11 +8,15 @@ import gzip
 import os
 import re
 import tarfile
+import argparse
 
 from six.moves import urllib
 
 from tensorflow.python.platform import gfile
 import tensorflow as tf
+from tqdm import *
+import numpy as np
+from os.path import join as pjoin
 
 # Special vocabulary symbols - we always put them at the start.
 _PAD = b"_PAD"
@@ -199,20 +203,29 @@ def prepare_data():
     vocab_path = pjoin(args.vocab_dir, "vocab.dat")
     train_path = pjoin(args.source_dir, "train")
     valid_path = pjoin(args.source_dir, "val")
-    dev_path = pjoin(args.source_dir, "dev")
+    test_path = pjoin(args.source_dir, "test")
 
-    create_vocabulary(vocab_path, [train_path, valid_path, dev_path])
+    create_vocabulary(vocab_path,
+                      [pjoin(args.source_dir, "train.from"),
+                       pjoin(args.source_dir, "train.to"),
+                       pjoin(args.source_dir, "val.to"),
+                       pjoin(args.source_dir, "val.from"),
+                       ])
     vocab, rev_vocab = initialize_vocabulary(pjoin(args.vocab_dir, "vocab.dat"))
 
     process_glove(args, rev_vocab, args.source_dir + "/glove.trimmed.{}".format(args.glove_dim),
                     random_init=args.random_init)
 
     # ======== Creating Dataset =========
-    train_ids_path = train_path + ".ids"
-    data_to_token_ids(train_path, train_ids_path, vocab_path)
+    x_train_ids_path = train_path + ".ids.from"
+    y_train_ids_path = train_path + ".ids.to"
+    data_to_token_ids(train_path + ".from", x_train_ids_path, vocab_path)
+    data_to_token_ids(train_path + ".to", y_train_ids_path, vocab_path)
 
-    val_ids_path = valid_path + ".ids"
-    data_to_token_ids(valid_path, val_ids_path, vocab_path)
+    x_ids_path = valid_path + ".ids.from"
+    y_ids_path = valid_path + ".ids.to"
+    data_to_token_ids(valid_path + ".from", x_ids_path, vocab_path)
+    data_to_token_ids(valid_path + ".to", y_ids_path, vocab_path)
 
-    dev_ids_path = dev_path + ".ids"
-    data_to_token_ids(dev_path, dev_ids_path, vocab_path)
+if __name__ == '__main__':
+  prepare_data()

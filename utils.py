@@ -12,7 +12,7 @@ def load_glove_embeddings(embed_path):
     glove = np.load(embed_path)['glove']
     logger.info("Dimension: {}".format(glove.shape[1]))
     logger.info("Vocabulary: {}" .format(glove.shape[0]))
-    return glov
+    return glove
 
 def add_paddings(sentence, max_length, n_features=1):
     mask = [True] * len(sentence)
