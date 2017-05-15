@@ -1,6 +1,6 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-source_file_name = "1000.txt"
+source_file_name = "/commuter/open_subtitle/newfile.txt"
 write_file_name = "result.txt"
 
 analyzer = SentimentIntensityAnalyzer()
