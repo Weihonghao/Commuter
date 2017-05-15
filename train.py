@@ -103,6 +103,7 @@ def create_model(session, embeddings=None, forward_only=False):
       FLAGS.to_vocab_size,
       _buckets,
       FLAGS.size,
+      FLAGS.embedding_size,
       FLAGS.num_layers,
       FLAGS.max_gradient_norm,
       FLAGS.batch_size,

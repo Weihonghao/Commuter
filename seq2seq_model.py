@@ -47,6 +47,7 @@ class Seq2SeqModel(object):
                target_vocab_size,
                buckets,
                size,
+               embedding_size,
                num_layers,
                max_gradient_norm,
                batch_size,
@@ -55,7 +56,6 @@ class Seq2SeqModel(object):
                use_lstm=False,
                num_samples=512,
                forward_only=False,
-               pretrained_embeddings=None,
                dtype=tf.float32):
     """Create the model.
     Args:
@@ -135,7 +135,7 @@ class Seq2SeqModel(object):
           cell,
           num_encoder_symbols=source_vocab_size,
           num_decoder_symbols=target_vocab_size,
-          embedding_size=size,
+          embedding_size=embedding_size,
           output_projection=output_projection,
           feed_previous=do_decode,
           dtype=dtype)
@@ -177,9 +177,6 @@ class Seq2SeqModel(object):
           lambda x, y: seq2seq_f(x, y, False),
           softmax_loss_function=softmax_loss_function)
 
-    if pretrained_embeddings is not None:
-      inject_pretrained_word2vec(pretrained_embeddings)
-
     # Gradients and SGD update operation for training the model.
     params = tf.trainable_variables()
     if not forward_only:
@@ -196,9 +193,6 @@ class Seq2SeqModel(object):
 
     self.saver = tf.train.Saver(tf.global_variables())
 
-  def inject_pretrained_word2vec(self, pretrained_embeddings):
-    embedding_variable = [v for v in tf.trainable_variables() if SOURCE_EMBEDDING_KEY in v.name or TARGET_EMBEDDING_KEY in v.name]
-    
 
   def step(self, session, encoder_inputs, decoder_inputs, target_weights,
            bucket_id, forward_only):
