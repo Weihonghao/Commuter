@@ -25,7 +25,7 @@ if __name__ == "__main__":
     			question_val.write(line)
     		else:
     			question_test.write(line)
-            count +=1
+		count +=1
 
     print count
     question_train.close()
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     			answer_val.write(line)
     		else:
     			answer_test.write(line)
-            count += 1
+		count += 1
 
     print count
     answer_train.close()
