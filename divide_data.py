@@ -2,15 +2,15 @@
 
 if __name__ == "__main__":
     #question_file = open("question.txt",'r')
-    question_train = open("question_train.txt",'w')
-    question_val = open("question_val.txt",'w')
-    question_test = open("question_test.txt",'w')
+    question_train = open("data/train.from",'w')
+    question_val = open("data/val.from",'w')
+    question_test = open("data/test.from",'w')
     
     
     #answer_file = open("answer.txt",'r')
-    answer_train = open("answer_train.txt",'w')
-    answer_val = open("answer_val.txt",'w')
-    answer_test = open("answer_test.txt",'w')
+    answer_train = open("data/train.to",'w')
+    answer_val = open("data/val.to",'w')
+    answer_test = open("data/test.to",'w')
     
     
     num_train = 5000
