@@ -13,7 +13,8 @@ import numpy as np
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 
-import data_utils
+from preprocess_data import initialize_vocabulary
+import utils
 import seq2seq_model
 
 
@@ -29,6 +30,9 @@ tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
 tf.app.flags.DEFINE_integer("from_vocab_size", 40000, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("to_vocab_size", 40000, "French vocabulary size.")
 tf.app.flags.DEFINE_string("data_dir", "data/", "Data directory")
+tf.app.flags.DEFINE_string("vocab_path", "data/vocab.dat", "Path to vocab file (default: ./data/squad/vocab.dat)")
+tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of the pretrained vocabulary.")
+tf.app.flags.DEFINE_string("embed_path", "", "Path to the trimmed GLoVe embedding (default: ./data/squad/glove.trimmed.{embedding_size}.npz)")
 tf.app.flags.DEFINE_string("train_dir", "train/", "Training directory.")
 tf.app.flags.DEFINE_string("from_train_data", None, "Training data.")
 tf.app.flags.DEFINE_string("to_train_data", None, "Training data.")
@@ -50,6 +54,9 @@ FLAGS = tf.app.flags.FLAGS
 # We use a number of buckets and pad to the closest one for efficiency.
 # See seq2seq_model.Seq2SeqModel for details of how they work.
 _buckets = [(5, 10), (10, 15), (20, 25), (40, 50)]
+
+SOURCE_EMBEDDING_KEY = "embedding_attention_seq2seq/RNN/EmbeddingWrapper/embedding"
+TARGET_EMBEDDING_KEY = "embedding_attention_seq2seq/embedding_attention_decoder/embedding"
 
 
 def read_data(source_path, target_path, max_size=None):
@@ -88,7 +95,7 @@ def read_data(source_path, target_path, max_size=None):
   return data_set
 
 
-def create_model(session, forward_only):
+def create_model(session, embeddings=None, forward_only=False):
   """Create translation model and initialize or load parameters in session."""
   dtype = tf.float16 if FLAGS.use_fp16 else tf.float32
   model = seq2seq_model.Seq2SeqModel(
@@ -110,6 +117,13 @@ def create_model(session, forward_only):
   else:
     print("Created model with fresh parameters.")
     session.run(tf.global_variables_initializer())
+    if embeddings is not None:
+      embedding_variable = [v for v in tf.trainable_variables() if SOURCE_EMBEDDING_KEY in v.name or TARGET_EMBEDDING_KEY in v.name]
+      if len(embedding_variable) != 2:
+        print("Word vector variable not found or too many.")
+        sys.exit(1)
+      sess.run(embedding_variable[0].assign(embeddings))
+      sess.run(embedding_variable[1].assign(embeddings))
   return model
 
 
@@ -120,18 +134,18 @@ def train():
   from_dev_data = FLAGS.from_train_data
   to_dev_data = FLAGS.to_train_data
 
-  embed_path = FLAGS.embed_path or pjoin("data", "squad", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
-  embeddings = load_glove_embeddings(embed_path)
+  embed_path = FLAGS.embed_path or pjoin("data", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
+  embeddings = utils.load_glove_embeddings(embed_path)
 
   vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
-  vocab, rev_vocab = initialize_vocab(vocab_path)
+  vocab, rev_vocab = initialize_vocabulary(vocab_path)
 
   # TODO: use glove embedding in model.
 
   with tf.Session() as sess:
     # Create model.
     print("Creating %d layers of %d units." % (FLAGS.num_layers, FLAGS.size))
-    model = create_model(sess, False)
+    model = create_model(sess, embeddings, False)
 
     # Read data into buckets and compute their sizes.
     print ("Reading development and training data (limit: %d)."
@@ -199,18 +213,18 @@ def train():
 
 
 def decode():
+  embed_path = FLAGS.embed_path or pjoin("data", "squad", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
+  embeddings = utils.load_glove_embeddings(embed_path)
+
   with tf.Session() as sess:
     # Create model and load parameters.
-    model = create_model(sess, True)
+    model = create_model(sess, embeddings, True)
     model.batch_size = 1  # We decode one sentence at a time.
 
     # Load vocabularies.
-    en_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.from" % FLAGS.from_vocab_size)
-    fr_vocab_path = os.path.join(FLAGS.data_dir,
-                                 "vocab%d.to" % FLAGS.to_vocab_size)
-    en_vocab, _ = data_utils.initialize_vocabulary(en_vocab_path)
-    _, rev_fr_vocab = data_utils.initialize_vocabulary(fr_vocab_path)
+    vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
+    en_vocab, _ = data_utils.initialize_vocabulary(vocab_path)
+    _, rev_fr_vocab = data_utils.initialize_vocabulary(vocab_path)
 
     # Decode from standard input.
     sys.stdout.write("> ")
