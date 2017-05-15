@@ -28,8 +28,8 @@ tf.app.flags.DEFINE_integer("size", 1024, "Size of each model layer.")
 tf.app.flags.DEFINE_integer("num_layers", 3, "Number of layers in the model.")
 tf.app.flags.DEFINE_integer("from_vocab_size", 40000, "English vocabulary size.")
 tf.app.flags.DEFINE_integer("to_vocab_size", 40000, "French vocabulary size.")
-tf.app.flags.DEFINE_string("data_dir", "/tmp", "Data directory")
-tf.app.flags.DEFINE_string("train_dir", "/tmp", "Training directory.")
+tf.app.flags.DEFINE_string("data_dir", "data/", "Data directory")
+tf.app.flags.DEFINE_string("train_dir", "train/", "Training directory.")
 tf.app.flags.DEFINE_string("from_train_data", None, "Training data.")
 tf.app.flags.DEFINE_string("to_train_data", None, "Training data.")
 tf.app.flags.DEFINE_string("from_dev_data", None, "Training data.")
@@ -115,31 +115,18 @@ def create_model(session, forward_only):
 
 def train():
   """Train a en->fr translation model using WMT data."""
-  from_train = None
-  to_train = None
-  from_dev = None
-  to_dev = None
-  if FLAGS.from_train_data and FLAGS.to_train_data:
-    from_train_data = FLAGS.from_train_data
-    to_train_data = FLAGS.to_train_data
-    from_dev_data = from_train_data
-    to_dev_data = to_train_data
-    if FLAGS.from_dev_data and FLAGS.to_dev_data:
-      from_dev_data = FLAGS.from_dev_data
-      to_dev_data = FLAGS.to_dev_data
-    from_train, to_train, from_dev, to_dev, _, _ = data_utils.prepare_data(
-        FLAGS.data_dir,
-        from_train_data,
-        to_train_data,
-        from_dev_data,
-        to_dev_data,
-        FLAGS.from_vocab_size,
-        FLAGS.to_vocab_size)
-  else:
-      # Prepare WMT data.
-      print("Preparing WMT data in %s" % FLAGS.data_dir)
-      from_train, to_train, from_dev, to_dev, _, _ = data_utils.prepare_wmt_data(
-          FLAGS.data_dir, FLAGS.from_vocab_size, FLAGS.to_vocab_size)
+  from_train_data = FLAGS.from_train_data
+  to_train_data = FLAGS.to_train_data
+  from_dev_data = FLAGS.from_train_data
+  to_dev_data = FLAGS.to_train_data
+
+  embed_path = FLAGS.embed_path or pjoin("data", "squad", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
+  embeddings = load_glove_embeddings(embed_path)
+
+  vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
+  vocab, rev_vocab = initialize_vocab(vocab_path)
+
+  # TODO: use glove embedding in model.
 
   with tf.Session() as sess:
     # Create model.
