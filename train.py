@@ -242,10 +242,11 @@ def decode():
 
         # Load vocabularies.
         vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
-        en_vocab, _ = preprocess_data.initialize_vocabulary(vocab_path)
-        vocab, rev_fr_vocab = preprocess_data.initialize_vocabulary(vocab_path)
-        FLAGS.vocab_size = len(vocab)
-
+        en_vocab, rev_fr_vocab = preprocess_data.initialize_vocabulary(vocab_path)
+        FLAGS.vocab_size = len(en_vocab)
+        print("embeddings.shape[0]: " + str(embeddings.shape[0]))
+        print("len(en_vocab):" +  str(len(en_vocab)))
+        assert embeddings.shape[0] == len(en_vocab)
         model = create_model(sess, embeddings, True)
         model.batch_size = 1  # We decode one sentence at a time.
 
