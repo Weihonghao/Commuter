@@ -236,13 +236,18 @@ def decode():
 
     with tf.Session() as sess:
         # Create model and load parameters.
-        model = create_model(sess, embeddings, True)
-        model.batch_size = 1  # We decode one sentence at a time.
+        #model = create_model(sess, embeddings, True)
+        #model.batch_size = 1  # We decode one sentence at a time.
 
         # Load vocabularies.
         vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
         en_vocab, _ = preprocess_data.initialize_vocabulary(vocab_path)
-        _, rev_fr_vocab = preprocess_data.initialize_vocabulary(vocab_path)
+        vocab, rev_fr_vocab = preprocess_data.initialize_vocabulary(vocab_path)
+        FLAGS.vocab_size = len(vocab)
+
+        model = create_model(sess, embeddings, True)
+        model.batch_size = 1  # We decode one sentence at a time.
+
 
         # Decode from standard input.
         sys.stdout.write("> ")
