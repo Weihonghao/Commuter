@@ -19,13 +19,13 @@ import utils
 import seq2seq_model
 
 
-tf.app.flags.DEFINE_float("learning_rate", 0.5, "Learning rate.")
+tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99, "Learning rate decays by this much.")
 tf.app.flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
-tf.app.flags.DEFINE_float("keep_prob", 1.0, "Keep prob of output.")
+tf.app.flags.DEFINE_float("keep_prob", 0.95, "Keep prob of output.")
 tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
-tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
+tf.app.flags.DEFINE_integer("num_layers", 5, "Number of layers in the model.")
 tf.app.flags.DEFINE_string("data_dir", "data/", "Data directory")
 tf.app.flags.DEFINE_string("vocab_path", "data/vocab.dat", "Path to vocab file (default: ./data/squad/vocab.dat)")
 tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of the pretrained vocabulary.")
@@ -37,7 +37,7 @@ tf.app.flags.DEFINE_integer("steps_per_print", 1,
                             "How many training steps to print info.")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
-tf.app.flags.DEFINE_boolean("decode", True,
+tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
@@ -144,8 +144,8 @@ def train():
 
     vocab_path = FLAGS.vocab_path or pjoin(FLAGS.data_dir, "vocab.dat")
     vocab, rev_vocab = preprocess_data.initialize_vocabulary(vocab_path)
-    FLAGS.vocab_size = len(vocab)
-
+    FLAGS.vocab_size = len(vocab) 
+    print(embeddings.shape[0], len(vocab))
     assert embeddings.shape[0] == len(vocab)
 
     with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as sess:
@@ -229,6 +229,11 @@ def train():
 				  "inf")
 			    print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 			sys.stdout.flush()
+                    if perplexity < 1.00001:
+                        print ("====== global step %d learning rate %.4f step-time %.2f perplexity "
+                               "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                                         step_time, perplexity))
+                        break
 
 
 def decode():
