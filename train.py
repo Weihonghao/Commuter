@@ -19,13 +19,13 @@ import utils
 import seq2seq_model
 
 
-tf.app.flags.DEFINE_float("learning_rate", 0.001, "Learning rate.")
+tf.app.flags.DEFINE_float("learning_rate", 0.01, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99, "Learning rate decays by this much.")
 tf.app.flags.DEFINE_float("max_gradient_norm", 5.0, "Clip gradients to this norm.")
 tf.app.flags.DEFINE_integer("batch_size", 64, "Batch size to use during training.")
 tf.app.flags.DEFINE_float("keep_prob", 0.95, "Keep prob of output.")
 tf.app.flags.DEFINE_integer("size", 100, "Size of each model layer.")
-tf.app.flags.DEFINE_integer("num_layers", 5, "Number of layers in the model.")
+tf.app.flags.DEFINE_integer("num_layers", 1, "Number of layers in the model.")
 tf.app.flags.DEFINE_string("data_dir", "data/", "Data directory")
 tf.app.flags.DEFINE_string("vocab_path", "data/vocab.dat", "Path to vocab file (default: ./data/squad/vocab.dat)")
 tf.app.flags.DEFINE_integer("embedding_size", 100, "Size of the pretrained vocabulary.")
@@ -37,7 +37,7 @@ tf.app.flags.DEFINE_integer("steps_per_print", 1,
                             "How many training steps to print info.")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
-tf.app.flags.DEFINE_boolean("decode", False,
+tf.app.flags.DEFINE_boolean("decode", True,
                             "Set to True for interactive decoding.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
@@ -138,7 +138,7 @@ def create_model(session, embeddings=None, forward_only=False):
 def train():
     """Train a en->fr translation model using WMT data."""
     data_config = DataConfig(FLAGS.data_dir)
-
+    logFile = open('data/log.txt','w')
     embed_path = FLAGS.embed_path or pjoin("data", "glove.trimmed.{}.npz".format(FLAGS.embedding_size))
     embeddings = utils.load_glove_embeddings(embed_path)
 
@@ -229,6 +229,10 @@ def train():
 				  "inf")
 			    print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
 			sys.stdout.flush()
+                    logFile.write("====== global step %d learning rate %.4f step-time %.2f perplexity "
+                               "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                                         step_time, perplexity))
+                    logFile.write("\n")
                     if perplexity < 1.00001:
                         print ("====== global step %d learning rate %.4f step-time %.2f perplexity "
                                "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
