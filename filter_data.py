@@ -22,7 +22,8 @@ answer_file = open('answer.txt','w')
 
 count = 0
 with open(source_file_name) as file:
-    for line in tqdm(file, total=get_line_number(glove_path)):
+    lineNumber = get_line_number(source_file_name)
+    for line in tqdm(file, total= lineNumber):
         if old_line == "#SKIPTHIS#":
             old_line = line 
             continue
