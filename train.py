@@ -212,9 +212,14 @@ def train():
                 if current_step % FLAGS.steps_per_checkpoint == 0:
                     # Print statistics for the previous epoch.
                     perplexity = math.exp(float(loss)) if loss < 300 else float("inf")
+                    print("checkpoint here")
                     print("====== global step %d learning rate %.4f step-time %.2f perplexity "
                           "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
                                     step_time, perplexity))
+                    logFile.write("====== global step %d learning rate %.4f step-time %.2f perplexity "
+                          "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
+                                    step_time, perplexity))
+                    logFile.write("\n")
                     # Decrease learning rate if no improvement was seen over last 3 times.
                     if len(previous_losses) > 2 and loss > max(previous_losses[-3:]):
                         sess.run(model.learning_rate_decay_op)
@@ -222,6 +227,9 @@ def train():
                     # Save checkpoint and zero timer and loss.
                     checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
                     model.saver.save(sess, checkpoint_path, global_step=model.global_step)
+                    if perplexity < 2:
+                    breakCount += 1
+                    print("breakCount ", breakCount)
                     step_time, loss = 0.0, 0.0
                     # Run evals on development set and print their perplexity.
                     for bucket_id in xrange(len(_buckets)):
@@ -236,16 +244,12 @@ def train():
                             "inf")
                         print("  eval: bucket %d perplexity %.2f" % (bucket_id, eval_ppx))
                     sys.stdout.flush()
-                logFile.write("====== global step %d learning rate %.4f step-time %.2f perplexity "
-                          "%.2f" % (model.global_step.eval(), model.learning_rate.eval(),
-                                    step_time, perplexity))
-                logFile.write("\n")
-                if perplexity < 1.001:
-                    breakCount += 1
-                    print("breakCount ", breakCount)
                     if breakCount > 20:
+                        print("successfully breakdown")
                         logFile.close()
                         break
+                
+                
 
 
 def decode():
