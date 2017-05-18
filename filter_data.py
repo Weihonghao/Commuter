@@ -3,6 +3,16 @@ from tqdm import tqdm
 source_file_name = "/commuter/open_subtitle/newfile.txt"
 write_file_name = "result.txt"
 
+
+def get_line_number(file_path):  
+    fp = open(file_path, "r+")
+    buf = mmap.mmap(fp.fileno(), 0)
+    lines = 0
+    while buf.readline():
+        lines += 1
+    return lines
+
+
 analyzer = SentimentIntensityAnalyzer()
 old_line = ""
 
@@ -12,7 +22,7 @@ answer_file = open('answer.txt','w')
 
 count = 0
 with open(source_file_name) as file:
-    for line in tqdm(file):
+    for line in tqdm(file, total=get_line_number(glove_path)):
         if old_line == "#SKIPTHIS#":
             old_line = line 
             continue
