@@ -1,5 +1,7 @@
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from tqdm import tqdm
+import mmap
+import string
 source_file_name = "/commuter/open_subtitle/newfile.txt"
 write_file_name = "result.txt"
 
@@ -21,9 +23,12 @@ question_file = open('question.txt','w')
 answer_file = open('answer.txt','w')
 
 count = 0
+exclude = set(string.punctuation)
+lineNumber = get_line_number(source_file_name)
 with open(source_file_name) as file:
-    lineNumber = get_line_number(source_file_name)
     for line in tqdm(file, total= lineNumber):
+        line = line.lower()
+        line = ''.join(ch for ch in line if ch not in exclude)
         if old_line == "#SKIPTHIS#":
             old_line = line 
             continue

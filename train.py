@@ -228,8 +228,8 @@ def train():
                     checkpoint_path = os.path.join(FLAGS.train_dir, "translate.ckpt")
                     model.saver.save(sess, checkpoint_path, global_step=model.global_step)
                     if perplexity < 2:
-                    breakCount += 1
-                    print("breakCount ", breakCount)
+                        breakCount += 1
+                        print("breakCount ", breakCount)
                     step_time, loss = 0.0, 0.0
                     # Run evals on development set and print their perplexity.
                     for bucket_id in xrange(len(_buckets)):
