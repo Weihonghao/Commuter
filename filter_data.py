@@ -22,7 +22,6 @@ text_file = open(write_file_name, "w")
 question_file = open('question.txt','w')
 answer_file = open('answer.txt','w')
 
-count = 0
 exclude = set(string.punctuation)
 lineNumber = get_line_number(source_file_name)
 with open(source_file_name) as file:
@@ -44,9 +43,7 @@ with open(source_file_name) as file:
             line = "#SKIPTHIS#"
 
         old_line = line
-        count += 1
-        if count > 1000:
-            break
+        
 
 text_file.close()
 question_file.close()

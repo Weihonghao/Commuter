@@ -1,4 +1,13 @@
+from tqdm import tqdm
+import mmap
 
+def get_line_number(file_path):  
+    fp = open(file_path, "r+")
+    buf = mmap.mmap(fp.fileno(), 0)
+    lines = 0
+    while buf.readline():
+        lines += 1
+    return lines
 
 if __name__ == "__main__":
     #question_file = open("question.txt",'r')
@@ -17,7 +26,8 @@ if __name__ == "__main__":
     num_val = 1200 + num_train
 
     count = 0
-    with open("question.txt") as file:
+    lineNumber = get_line_number("question.txt")
+    with open("question.txt") as tqdm(file, total= lineNumber):
     	for line in file:
     		if count < num_train:
     			question_train.write(line)
@@ -34,7 +44,8 @@ if __name__ == "__main__":
 
 
     count = 0
-    with open("answer.txt") as file:
+    ineNumber = get_line_number("answer.txt")
+    with open("answer.txt") as tqdm(file, total= lineNumber):
     	for line in file:
     		if count < num_train:
     			answer_train.write(line)
