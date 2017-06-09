@@ -17,6 +17,8 @@ from os.path import join as pjoin
 import preprocess_data
 import utils
 import seq2seq_model
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '1'
 
 tf.app.flags.DEFINE_float("learning_rate", 0.01, "Learning rate.")
 tf.app.flags.DEFINE_float("learning_rate_decay_factor", 0.99, "Learning rate decays by this much.")
@@ -37,7 +39,7 @@ tf.app.flags.DEFINE_integer("steps_per_print", 1,
                             "How many training steps to print info.")
 tf.app.flags.DEFINE_integer("steps_per_checkpoint", 200,
                             "How many training steps to do per checkpoint.")
-tf.app.flags.DEFINE_boolean("decode", True,
+tf.app.flags.DEFINE_boolean("decode", False,
                             "Set to True for interactive decoding.")
 tf.app.flags.DEFINE_boolean("self_test", False,
                             "Run a self-test if this is set to True.")
